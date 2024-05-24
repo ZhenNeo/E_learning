@@ -1,0 +1,25 @@
+<!-- account_security.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Security</title>
+</head>
+<body>
+    <h1>Account Security</h1>
+    <h2>Change Email</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ email_form.as_p }}
+        <button type="submit">Save Email</button>
+    </form>
+    
+    <h2>Change Password</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ password_form.as_p }}
+        <button type="submit">Save Password</button>
+    </form>
+</body>
+</html>

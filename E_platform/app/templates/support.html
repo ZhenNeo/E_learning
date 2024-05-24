@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Support & Help</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">E-Learning</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'course_catalog' %}">Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'enrolled_course' %}">Enrolled Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'community_platform' %}">Community</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'mentorship_page' %}">Personal Mentorship</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'view_cart' %}">Cart</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'wishlist' %}">Wishlist</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Support</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'referrals' %}">Referrals</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Profile
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'update_profile' %}">Update</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+
+
+    <div class="container mt-5">
+        <h1 class="text-center">Support & Help</h1>
+        <br>
+        <br>
+
+        <div class="row mt-5">
+            <!-- New Ticket Section -->
+            <div class="col-md-6">
+                <h2>New Ticket</h2>
+                <form method="post" enctype="multipart/form-data" class="p-4 border rounded shadow-sm bg-light">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="reason">Choose Question:</label>
+                        <select class="form-control" name="reason" id="reason">
+                            <option value="Payment Methods">Payment Methods</option>
+                            <option value="Refund a Course">Refund a Course</option>
+                            <option value="Troubleshoot Payment Failure">Troubleshoot Payment Failure</option>
+                            <option value="Download Course Resources">Download Course Resources</option>
+                            <option value="Enrollment">Enrollment</option>
+                            <option value="Grades & Assignments">Grades & Assignments</option>
+                            <option value="Video Library">Video Library</option>
+                            <option value="Trust & Safety">Trust & Safety</option>
+                            <option value="Find a missing course">Find a missing course</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea class="form-control" name="description" id="description" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="attachment">Attachment (supported files: png, jpeg, pdf, doc):</label>
+                        <input type="file" class="form-control-file" name="attachment" id="attachment">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Raise Ticket</button>
+                </form>
+            </div>
+
+            <!-- Previous Tickets Section -->
+            <div class="col-md-6">
+                <h2>Previous Tickets</h2>
+                <ul class="list-group mt-3">
+                    {% for ticket in tickets %}
+                    <li class="list-group-item">
+                        <h5><strong>Reason:</strong> {{ ticket.reason }}</h5>
+                        <p><strong>Description:</strong> {{ ticket.description }}</p>
+                        <p><strong>Status:</strong> {{ ticket.status }}</p>
+                        <p><strong>Submitted on:</strong> {{ ticket.timestamp }}</p>
+                        {% if ticket.attachment %}
+                        <p><strong>Attachment:</strong> <a href="{{ ticket.attachment.url }}" class="btn btn-sm btn-info">Download</a></p>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

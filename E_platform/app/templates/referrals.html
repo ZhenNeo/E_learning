@@ -1,0 +1,108 @@
+<!-- templates/referrals.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Referrals</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+        }
+        .grid-item {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">E-Learning</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'course_catalog' %}">Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'enrolled_course' %}">Enrolled Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'community_platform' %}">Community</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'mentorship_page' %}">Personal Mentorship</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'view_cart' %}">Cart</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'wishlist' %}">Wishlist</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'support' %}">Support</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'referrals' %}">Referrals</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Profile
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'update_profile' %}">Update</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+    <div class="container">
+        <h1>Referrals</h1>
+        <div class="grid-container">
+            <!-- 0,0 Invite Friends by Email -->
+            <div class="grid-item">
+                <h2>Invite Your Friends</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ referral_form.as_p }}
+                    <button type="submit" class="btn btn-primary">Invite</button>
+                </form>
+            </div>
+            <!-- 1,0 Your Rewards -->
+            <div class="grid-item">
+                <h2>Your Rewards</h2>
+                <p>Total Coins: 0</p>
+                <p>₹ 0</p>
+                <button class="btn btn-primary">Check Your Progress</button>
+            </div>
+            <!-- 0,1 Share through Social Media -->
+            <div class="grid-item">
+                <h2>Share Through Social Media</h2>
+                <input type="text" class="form-control" placeholder="Enter URL to share">
+                <button class="btn btn-primary mt-2">Share</button>
+            </div>
+            <!-- 1,1 Criteria for New Referrals -->
+            <div class="grid-item">
+                <h2>Criteria for New Referrals</h2>
+                <p>The referred friend should not have an account in E-learning before.</p>
+                <p>The referred client does not get a refund.</p>
+                <p>He/she should stay 45 days at least.</p>
+                <p>If you refer your friend, your friend's account will get connected to your account from that point onwards.</p>
+                <p>For the first 5 purchases, you will get 50 coins. These coins will be redeemed in the next purchase. No withdrawal.</p>
+                <p>Example: 50 coins = ₹ 25.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
