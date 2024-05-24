@@ -1,0 +1,52 @@
+<!-- templates/question_papers_by_year.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question Papers by Grade</title>
+    <style>
+        .year-button, .grade-button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-decoration: none;
+            color: #333;
+            border-radius: 5px;
+        }
+        .year-button.active, .grade-button.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .year-button:hover, .grade-button:hover {
+            background-color: #0056b3;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Question Papers</h1>
+
+    <!-- Grade Filter Buttons -->
+    <div>
+        <h2>Select Grade:</h2>
+        <div>
+            <a href="{% url 'question_papers' %}" class="grade-button {% if not selected_grade %}active{% endif %}">All Grades</a>
+            {% for grade in grades %}
+                <a href="{% url 'question_papers' %}?grade={{ grade }}{% if selected_year %}&year={{ selected_year }}{% endif %}" class="grade-button {% if selected_grade|default:'' == grade|stringformat:"s" %}active{% endif %}">Grade {{ grade }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Display Question Papers -->
+    <ul>
+        {% for paper in question_papers %}
+            <li>
+                <a href="{% url 'view_question_paper' paper.id %}" target="_blank">{{ paper.title }} - {{ paper.subject }} ({{ paper.year }})</a>
+                | <a href="{% url 'download_question_paper' paper.id %}" download>Download PDF</a>
+            </li>
+        {% empty %}
+            <li>No question papers available for the selected criteria.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .correct-answer {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz Results for {{ quiz.title }}</h1>
+    
+    {% for question in questions %}
+    <div class="question">
+        <h3>Question {{ question.question_no }}: {{ question.question_text }}</h3>
+        <ul>
+            <li>Option 1: {{ question.option1 }}</li>
+            <li>Option 2: {{ question.option2 }}</li>
+            <li>Option 3: {{ question.option3 }}</li>
+            <li>Option 4: {{ question.option4 }}</li>
+        </ul>
+        <p>
+            <strong>Your Answer:</strong>
+            {% for selected_answer in selected_answers %}
+                {% if selected_answer.question == question %}
+                    Option {{ selected_answer.selected_option }}
+                {% endif %}
+            {% empty %}
+                N/A
+            {% endfor %}
+            {% if selected_answers %}
+                {% for selected_answer in selected_answers %}
+                    {% if selected_answer.question == question %}
+                        {% if selected_answer.selected_option == question.correct_option %}
+                            <span class="correct">(Correct)</span><br>
+                            <strong>Reason:</strong> {{ question.reason }}
+                        {% else %}
+                            <span class="incorrect">(Incorrect)</span><br>
+                            <strong>Correct Answer:</strong> <span class="correct-answer">Option {{ question.correct_option }}</span><br>
+                            <strong>Reason:</strong> {{ question.reason }}
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
+    
+    <h2>Summary</h2>
+    <p>Total Questions: {{ questions.count }}</p>
+    <p>Correct Answers: {{ quiz_result.correct_answers_count }}</p>
+    <p>Score: {{ percentage_score }}%</p>
+</body>
+</html>

@@ -12,12 +12,252 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from .models import Post, Comment
-
+from django.utils import timezone
 
 # Create your views here.
 
+    
+@login_required
+def all_course_progress(request):
+    student = Student.objects.get(user=request.user)
+    enrollments = Enrollment.objects.filter(user=student)
+    
+    course_progress_data = []
+    
+    for enrollment in enrollments:
+        course = enrollment.course
+        total_topics = sum(week.topics.count() for week in course.weeks.all())
+        watched_topics = sum(topic.watched_by_users.filter(id=student.id).exists() for week in course.weeks.all() for topic in week.topics.all())
+
+        if total_topics > 0:
+            progress_percentage = round((watched_topics / total_topics) * 100)
+        else:
+            progress_percentage = 0
+        
+        course_progress_data.append({
+            'course': course,
+            'total_topics': total_topics,
+            'watched_topics': watched_topics,
+            'progress_percentage': progress_percentage,
+        })
+
+    filter_status = request.GET.get('status', 'in_progress')
+    if filter_status == 'completed':
+        filtered_courses = [data for data in course_progress_data if data['progress_percentage'] == 100]
+    else:
+        filtered_courses = [data for data in course_progress_data if data['progress_percentage'] < 100]
+
+    context = {
+        'course_progress_data': filtered_courses,
+        'filter_status': filter_status,
+    }
+    
+    return render(request, 'my_courses.html', context)
+
+def question_papers(request):
+    selected_grade = request.GET.get('grade')
+
+    question_papers = QuestionPaper.objects.all()
+    if selected_grade:
+        question_papers = question_papers.filter(grade=selected_grade)
+
+    grades = QuestionPaper.objects.values_list('grade', flat=True).distinct()
+
+    context = {
+        'question_papers': question_papers,
+        'selected_grade': selected_grade,
+        'grades': sorted(grades)
+    }
+
+    return render(request, 'question_paper.html', context)
+
+def view_question_paper(request, pk):
+    question_paper = get_object_or_404(QuestionPaper, pk=pk)
+    return FileResponse(question_paper.file.open(), content_type='application/pdf')
+
+def download_question_paper(request, pk):
+    question_paper = get_object_or_404(QuestionPaper, pk=pk)
+    response = FileResponse(question_paper.file.open(), content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{question_paper.grade}th - {question_paper.subject}({question_paper.year}).pdf"'
+    return response
+
+@login_required
+def start_course(request, course_id):
+    user = Student.objects.get(user=request.user)
+    course = get_object_or_404(Course, id=course_id)
+    
+    weeks = Week.objects.filter(course=course).prefetch_related('topics')
+    
+    watched_topics = Topic.objects.filter(watched_by_users=user, week__course=course)
+    unlocked_quizzes = Quiz.objects.filter(topic__in=watched_topics)
+    
+    quizzes_data = []
+    for quiz in unlocked_quizzes:
+        quizzes_data.append({
+            'quiz_id': quiz.id,
+            'video_title': quiz.topic.title,
+            'status': 'Unlocked' if user in quiz.topic.watched_by_users.all() else 'Locked',
+            'due_date': quiz.due_date,
+            'weight': quiz.weight,
+            'score': round(quiz.results.get(student=user).score / quiz.results.get(student=user).total_questions * 100, 2) if quiz.results.filter(student=user).exists() else 'N/A'
+        })
+
+    return render(request, 'start_course.html', {
+        'course': course,
+        'weeks': weeks,
+        'quizzes_data': quizzes_data,
+        'quizzes': unlocked_quizzes,
+    })
+
+def watch_topic(request, course_id, topic_id):
+    user = Student.objects.get(user=request.user)
+    course = get_object_or_404(Course, id=course_id)
+    topic = get_object_or_404(Topic, id=topic_id)
+    
+    topic.watched_by_users.add(user)
+    
+    weeks = Week.objects.filter(course=course).prefetch_related('topics')
+    
+    all_topics = Topic.objects.filter(week__course=course)  # Fetch all topics related to the course
+    
+    return render(request, 'watch_topic.html', {
+        'course': course,
+        'weeks': weeks,
+        'current_topic': topic,
+        'all_topics': all_topics  # Pass all topics to the template
+    })
+
+
+@login_required
+def display_quiz(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    questions = quiz.quiz_questions.all().order_by('question_no')
+    student = Student.objects.get(user=request.user)
+
+    if request.method == 'POST':
+        score = 0
+        total_questions = questions.count()
+
+        for question in questions:
+            selected_option = request.POST.get(f'question_{question.id}')
+            if selected_option == question.correct_option:
+                score += 1
+
+            # Save or update the selected answers
+            selected_answer, created = SelectedAnswer.objects.update_or_create(
+                student=student,
+                quiz=quiz,
+                question=question,
+                defaults={'selected_option': selected_option}
+            )
+
+        # Save or update the quiz result
+        QuizResult.objects.update_or_create(
+            student=student,
+            quiz=quiz,
+            defaults={
+                'score': score,
+                'total_questions': total_questions,
+                'completed_at': timezone.now()  
+            }
+        )
+
+    return render(request, 'quiz_detail.html', {
+        'quiz': quiz,
+        'questions': questions
+    })
+
+@login_required
+def quiz_result(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    student = Student.objects.get(user=request.user)
+    questions = quiz.quiz_questions.all().order_by('question_no')
+    quiz_result = get_object_or_404(QuizResult, quiz=quiz, student=student)
+    selected_answers = SelectedAnswer.objects.filter(student=student, quiz=quiz).select_related('question')
+
+    # Calculate percentage score
+    total_questions = questions.count()
+    percentage_score = round((quiz_result.score / total_questions) * 100, 2)
+
+    return render(request, 'quiz_result.html', {
+        'quiz': quiz,
+        'questions': questions,
+        'quiz_result': quiz_result,
+        'selected_answers': selected_answers,
+        'percentage_score': percentage_score,  # Pass percentage score to the template
+    })
+
+
+def calculate_grade_for_student(student):
+    courses = Course.objects.filter(quizzes__results__student=student).distinct()
+
+    for course in courses:
+        quizzes = Quiz.objects.filter(course=course)
+        total_weighted_score = 0.0
+
+        for quiz in quizzes:
+            quiz_results = QuizResult.objects.filter(student=student, quiz=quiz)
+            if quiz_results.exists():
+                quiz_result = quiz_results.latest('completed_at')
+                weighted_score = (quiz_result.score / quiz_result.total_questions) * quiz.weight
+                total_weighted_score += weighted_score
+
+        final_grade = calculate_grade_from_score(total_weighted_score)
+
+        certificate, created = Certificate.objects.get_or_create(user=student, course=course)
+        Grade.objects.update_or_create(
+            certificate=certificate,
+            defaults={'grade': final_grade}
+        )
+
+
+def calculate_grade_from_score(score):
+    if score >= 90:
+        return 'A'
+    elif score >= 80:
+        return 'B'
+    elif score >= 70:
+        return 'C'
+    elif score >= 60:
+        return 'D'
+    else:
+        return 'F'
+
+@login_required
+def download_certificate(request, certificate_id):
+    certificate = get_object_or_404(Certificate, id=certificate_id, user__user=request.user)
+    if not certificate.certificate_image:
+        raise Http404("Certificate image not found")
+    
+    # Open the image file
+    file_path = certificate.certificate_image.path
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type='image/jpeg')
+        response['Content-Disposition'] = f'attachment; filename="{certificate.user.Full_Name} certificate {certificate.course.title}.jpg"'
+        return response
+    
+
+@login_required
+def certificate(request):
+    user = Student.objects.get(user=request.user)
+    
+    # Calculate grades for the student
+    calculate_grade_for_student(user)    
+
+    certificates = Certificate.objects.filter(user=user)
+    courses_with_certificates = {}
+
+    # Group certificates by course and include grade
+    for certificate in certificates:
+        grade = Grade.objects.filter(certificate=certificate).first()
+        courses_with_certificates[certificate.course] = {
+            'certificate': certificate,
+            'grade': grade.grade if grade else 'N/A'
+        }
+
+    return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------
@@ -135,11 +375,6 @@ def career_roadmap(request):
 def view_course_details(request, course_id):
     course = Course.objects.get(id=course_id)
     return render(request, 'view_course_details.html', {'course': course})
-
-
-def start_course(request, course_id):
-    course = Course.objects.get(id=course_id)
-    return render(request, 'start_course.html', {'course': course})
 
 
 @login_required

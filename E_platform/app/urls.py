@@ -55,4 +55,15 @@ urlpatterns = [
 
     path('courses/<int:course_id>/add_note/', add_note, name='add_note'),
     path('courses/<int:course_id>/get_notes/', get_notes, name='get_notes'),
+
+    path('certificate/', certificate, name='certificates'),
+    path('download-certificate/<int:certificate_id>/', download_certificate, name='download-certificate'),
+    path('my_courses', all_course_progress, name='my-courses'),
+    path('question-papers', question_papers, name='question_papers'),
+    path('question-paper/<int:pk>/', view_question_paper, name='view_question_paper'),
+    path('question-paper/<str:pk>/download/', download_question_paper, name='download_question_paper'),
+    path('course/<int:course_id>/topic/<int:topic_id>/', watch_topic, name='watch_topic'),
+    path('quiz/<int:quiz_id>/', display_quiz, name='display_quiz'),
+    path('quiz/<int:quiz_id>/result/', quiz_result, name='quiz_result'),
+    
 ]

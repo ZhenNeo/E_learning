@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrolled Courses</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">E-Learning</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'course_catalog' %}">Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Enrolled Courses</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'community_platform' %}">Community</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'mentorship_page' %}">Personal Mentorship</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Enrolled Courses -->
+<div class="container mt-5">
+    <h2>My Courses</h2>
+
+    <!-- Filter Buttons -->
+    <div class="mb-4">
+        <a href="?status=in_progress" class="btn btn-primary {% if filter_status == 'in_progress' %}active{% endif %}">In Progress</a>
+        <a href="?status=completed" class="btn btn-success {% if filter_status == 'completed' %}active{% endif %}">Completed</a>
+    </div>
+
+    <!-- Display Courses -->
+    <div class="row">
+        {% for course_progress in course_progress_data %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <img src="{{ course_progress.course.image.url }}" class="card-img-top" alt="{{ course_progress.course.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course_progress.course.title }}</h5>
+                        <p class="card-text">{{ course_progress.course.description }}</p>
+                        <p>Progress: {{ course_progress.progress_percentage }}%</p>
+                        <a href="{% url 'start_course' course_id=course_progress.course.id %}" class="btn btn-primary">Start Course</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No courses found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Bootstrap JS (Optional - Only if needed for JavaScript functionality) -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

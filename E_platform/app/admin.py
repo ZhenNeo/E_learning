@@ -28,6 +28,20 @@ admin.site.register(PaymentHistory)
 
 admin.site.register(Note)
 
+admin.site.register(Certificate)
+
+class QuestionInline(admin.TabularInline):
+    model = QuizQuestion
+    extra = 1  # Start with one extra form
+    show_change_link = True
+
+@admin.register(Quiz)
+class QuizAdmin(admin.ModelAdmin):
+    inlines = [QuestionInline]
+
+admin.site.register(QuizResult)
+admin.site.register(Grade)
+
 
 
 

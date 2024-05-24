@@ -114,7 +114,44 @@
             <!-- Grades Section -->
             <div id="grades" class="content-section hidden">
                 <h2>Grades Section</h2>
-                <!-- Include your grades content here -->
+                <table class="grades-table">
+                    <thead>
+                        <tr>
+                            <th>Items</th>
+                            <th>Status</th>
+                            <th>Due</th>
+                            <th>Weight</th>
+                            <th>Grade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for quiz in quizzes_data %}
+                        <tr>
+                            <td>
+                                <div class="quiz-row">
+                                    <img src="/static/icons/play-icon.png" alt="Play" class="play-icon">
+                                    <div class="quiz-info">
+                                        <a href="{% url 'quiz_result' quiz.quiz_id %}">
+                                            <strong>{{ quiz.video_title }}</strong><br>
+                                            
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="quiz-status {{ quiz.status|lower }}">
+                                {% if quiz.status == 'Locked' %}
+                                    <span class="locked-icon">🔒</span> {{ quiz.status }}
+                                {% else %}
+                                    <span class="unlocked-icon">🔓</span> {{ quiz.status }}
+                                {% endif %}
+                            </td>
+                            <td>{{ quiz.due_date|date:"M j, h:i A T" }}</td>
+                            <td>{{ quiz.weight }}%</td>
+                            <td>{{ quiz.score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
             <!-- Notes Section -->
             <div id="notes" class="content-section hidden">
