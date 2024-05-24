@@ -140,7 +140,7 @@ class SelectedAnswer(models.Model):
     student = models.ForeignKey(Student, related_name='selected_answers', on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, related_name='selected_answers', on_delete=models.CASCADE)
     question = models.ForeignKey(QuizQuestion, related_name='selected_answers', on_delete=models.CASCADE)
-    selected_option = models.CharField(max_length=2)
+    selected_option = models.CharField(max_length=2, null=True)
 
     def __str__(self):
         return f"{self.student.user.username} - {self.quiz.title} - Question {self.question.question_no} - Option {self.selected_option}"

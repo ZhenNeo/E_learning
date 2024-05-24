@@ -15,6 +15,7 @@ from django.http import HttpResponseBadRequest, FileResponse, HttpResponse
 from django.http import JsonResponse, Http404
 from .models import Post, Comment
 from django.utils import timezone
+from django.urls import reverse
 
 # Create your views here.
 
@@ -56,6 +57,7 @@ def all_course_progress(request):
     
     return render(request, 'my_courses.html', context)
 
+
 def question_papers(request):
     selected_grade = request.GET.get('grade')
 
@@ -73,15 +75,18 @@ def question_papers(request):
 
     return render(request, 'question_paper.html', context)
 
+
 def view_question_paper(request, pk):
     question_paper = get_object_or_404(QuestionPaper, pk=pk)
     return FileResponse(question_paper.file.open(), content_type='application/pdf')
+
 
 def download_question_paper(request, pk):
     question_paper = get_object_or_404(QuestionPaper, pk=pk)
     response = FileResponse(question_paper.file.open(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{question_paper.grade}th - {question_paper.subject}({question_paper.year}).pdf"'
     return response
+
 
 @login_required
 def start_course(request, course_id):
@@ -110,7 +115,6 @@ def start_course(request, course_id):
         'quizzes_data': quizzes_data,
         'quizzes': unlocked_quizzes,
     })
-
 
 
 def watch_topic(request, course_id, topic_id):
@@ -166,10 +170,15 @@ def display_quiz(request, quiz_id):
             }
         )
 
+        course_id = quiz.course.id
+        success_url = reverse('start_course', kwargs={'course_id': course_id})
+        return redirect(success_url)
+    
     return render(request, 'quiz_detail.html', {
         'quiz': quiz,
         'questions': questions
     })
+
 
 @login_required
 def quiz_result(request, quiz_id):
@@ -178,18 +187,21 @@ def quiz_result(request, quiz_id):
     questions = quiz.quiz_questions.all().order_by('question_no')
     quiz_result = get_object_or_404(QuizResult, quiz=quiz, student=student)
     selected_answers = SelectedAnswer.objects.filter(student=student, quiz=quiz).select_related('question')
+    
+    correct_answers_count = sum(1 for answer in selected_answers if answer.selected_option == answer.question.correct_option)
+    percentage_score = (correct_answers_count / questions.count()) * 100 if questions.count() > 0 else 0
 
-    # Calculate percentage score
-    total_questions = questions.count()
-    percentage_score = round((quiz_result.score / total_questions) * 100, 2)
-
-    return render(request, 'quiz_result.html', {
+    context = {
         'quiz': quiz,
         'questions': questions,
-        'quiz_result': quiz_result,
         'selected_answers': selected_answers,
-        'percentage_score': percentage_score,  # Pass percentage score to the template
-    })
+        'quiz_result': {
+            'correct_answers_count': correct_answers_count,
+        },
+        'percentage_score': percentage_score,
+    }
+
+    return render(request, 'quiz_result.html', context)
 
 
 def calculate_grade_for_student(student):
@@ -227,6 +239,7 @@ def calculate_grade_from_score(score):
     else:
         return 'F'
 
+
 @login_required
 def download_certificate(request, certificate_id):
     certificate = get_object_or_404(Certificate, id=certificate_id, user__user=request.user)
@@ -260,6 +273,7 @@ def certificate(request):
         }
 
     return render(request, 'certificates.html', {'courses_with_certificates': courses_with_certificates})
+
 # ---------------------------------------------------------------------------
 # Login view
 # ---------------------------------------------------------------------------

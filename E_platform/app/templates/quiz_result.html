@@ -1,3 +1,4 @@
+{% load option_text %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,16 +29,16 @@
     <div class="question">
         <h3>Question {{ question.question_no }}: {{ question.question_text }}</h3>
         <ul>
-            <li>Option 1: {{ question.option1 }}</li>
-            <li>Option 2: {{ question.option2 }}</li>
-            <li>Option 3: {{ question.option3 }}</li>
-            <li>Option 4: {{ question.option4 }}</li>
+            <li>{{ question.option1 }}</li>
+            <li>{{ question.option2 }}</li>
+            <li>{{ question.option3 }}</li>
+            <li>{{ question.option4 }}</li>
         </ul>
         <p>
             <strong>Your Answer:</strong>
             {% for selected_answer in selected_answers %}
                 {% if selected_answer.question == question %}
-                    Option {{ selected_answer.selected_option }}
+                    {{ selected_answer.selected_option|get_option_text:question }}
                 {% endif %}
             {% empty %}
                 N/A
@@ -50,7 +51,10 @@
                             <strong>Reason:</strong> {{ question.reason }}
                         {% else %}
                             <span class="incorrect">(Incorrect)</span><br>
-                            <strong>Correct Answer:</strong> <span class="correct-answer">Option {{ question.correct_option }}</span><br>
+                            <strong>Correct Answer:</strong> 
+                            <span class="correct-answer">
+                                {{ question.correct_option|get_option_text:question }}
+                            </span><br>
                             <strong>Reason:</strong> {{ question.reason }}
                         {% endif %}
                     {% endif %}
@@ -61,7 +65,7 @@
     {% endfor %}
     
     <h2>Summary</h2>
-    <p>Total Questions: {{ questions.count }}</p>
+    <p>Total Questions: {{ questions|length }}</p>
     <p>Correct Answers: {{ quiz_result.correct_answers_count }}</p>
     <p>Score: {{ percentage_score }}%</p>
 </body>

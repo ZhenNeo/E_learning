@@ -3,12 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ quiz.title }}</title>
+    <script>
+        window.onload = function() {
+            var timeLimitSeconds = {{ quiz.time_limit.hour }} * 3600 + {{ quiz.time_limit.minute }} * 60 + {{quiz.time_limit.second}};
+            var timerDisplay = document.getElementById('timer');
+            var quizSubmitted = false;
+    
+            console.log("Time limit in seconds: " + timeLimitSeconds);  // Add this line for debugging
+    
+            var countdown = setInterval(function() {
+                var minutes = Math.floor(timeLimitSeconds / 60);
+                var seconds = timeLimitSeconds % 60;
+                timerDisplay.innerHTML = minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    
+                console.log("Time remaining: " + minutes + ":" + (seconds < 10 ? "0" : "") + seconds);  // Add this line for debugging
+    
+                if (timeLimitSeconds <= 0 && !quizSubmitted) {
+                    clearInterval(countdown);
+                    document.getElementById("quizForm").submit();
+                    quizSubmitted = true;
+                } else {
+                    timeLimitSeconds--;
+                }
+            }, 1000);
+        };
+    </script>
 </head>
 <body>
     <h1>{{ quiz.title }}</h1>
     <p>{{ quiz.description }}</p>
+    <p>Time Remaining: <span id="timer"></span></p>
     
-    <form method="post">
+    <form id="quizForm" method="post">
         {% csrf_token %}
         <ul>
             {% for question in questions %}
