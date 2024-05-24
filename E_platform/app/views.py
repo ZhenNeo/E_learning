@@ -111,8 +111,10 @@ def start_course(request, course_id):
         'quizzes': unlocked_quizzes,
     })
 
+
+
 def watch_topic(request, course_id, topic_id):
-    user = Student.objects.get(user=request.user)
+    user = request.user.student     
     course = get_object_or_404(Course, id=course_id)
     topic = get_object_or_404(Topic, id=topic_id)
     

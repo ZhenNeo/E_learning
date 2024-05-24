@@ -76,41 +76,29 @@
         <!-- Main Content -->
         <div class="col-md-9 main-content">
             <!-- Course Material Section -->
-            <div id="course-material" class="content-section">
+            <div id="lessons" class="content-section">
                 <h2>{{ course.title }}</h2>
                 <p>{{ course.description }}</p>
                 <p>{{ course.roadmap }}</p>
-                {% for week in course.weeks.all %}
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h3>Week {{ week.number }}: {{ week.title }}</h3>
-                    </div>
-                    <div class="card-body">
-                        {% for topic in week.topics.all %}
-                        <div class="card mt-3">
-                            <div class="card-header">
-                                <h5>Topic: {{ topic.title }}</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if topic.video_file %}
-                                <div class="video-container">
-                                    <video controls>
-                                        <source src="{{ topic.video_file.url }}" type="{{ topic.video_file.content_type }}">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                </div>
-                                {% elif topic.video_link %}
-                                <div class="video-container">
-                                    <iframe width="1000" height="650" src="{{ topic.video_link }}" frameborder="0" allowfullscreen></iframe>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endfor %}
+        
+                <ul class="weeks-list">
+                    {% for week in course.weeks.all %}
+                        <li onclick="showTopics({{ week.id }})">{{ week.title }}</li>
+                        <ul id="topics-{{ week.id }}" class="topics-list" style="display: none;">
+                            {% for topic in week.topics.all %}
+                                <li><a href="{% url 'watch_topic' course.id topic.id %}">{{ topic.title }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                </ul>
+        
+                <ul>
+                    {% for quiz in quizzes %}
+                        <li><a href="{% url 'display_quiz' quiz.id %}">{{quiz.title}}</a></li>
+                    {% endfor %}
+                </ul>
             </div>
+        
             <!-- Grades Section -->
             <div id="grades" class="content-section hidden">
                 <h2>Grades Section</h2>
@@ -153,6 +141,7 @@
                     </tbody>
                 </table>
             </div>
+        
             <!-- Notes Section -->
             <div id="notes" class="content-section hidden">
                 <h2>Notes</h2>
@@ -162,101 +151,89 @@
                     <!-- Notes will be appended here -->
                 </div>
             </div>
-            <!-- Discussions Section -->
-            <div id="discussions" class="content-section hidden">
-                <h2>Discussion Forum</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="messages" class="content-section hidden">
-                <h2>Messages</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="resources" class="content-section hidden">
-                <h2>Resources</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="course_info" class="content-section hidden">
-                <h2>Course Info</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="career_guidance" class="content-section hidden">
-                <h2>Career Guidance</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="qp" class="content-section hidden">
-                <h2>Question Paper</h2>
-                <!-- Include your discussions content here -->
-            </div>
-            <div id="1_on_1" class="content-section hidden">
-                <h2>1-on-1 Mentorship</h2>
-                <!-- Include your discussions content here -->
-            </div>
+        
+            <!-- Other Sections -->
+            <!-- Add other sections like discussions, messages, resources, etc. similarly -->
+        
         </div>
-    </div>
-</div>
-
-<!-- Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-<!-- jQuery and AJAX -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<script>
-$(document).ready(function() {
-    // Function to show the correct section based on the sidebar link clicked
-    $('.list-group-item').click(function() {
-        var section = $(this).data('section');
-        $('.content-section').addClass('hidden');
-        $('#' + section).removeClass('hidden');
-    });
-
-    // Save note via AJAX
-    $('#save-note').click(function() {
-        var content = $('#note-content').val();
-        var courseId = {{ course.id }};
-        $.ajax({
-            url: '/courses/' + courseId + '/add_note/',
-            method: 'POST',
-            data: {
-                content: content,
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            },
-            success: function(response) {
-                if (response.status === 'success') {
-                    $('#note-content').val('');
-                    loadNotes();
-                } else {
-                    alert('Error saving note.');
-                }
+        
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        
+        <!-- jQuery and AJAX -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        
+        <script>
+        $(document).ready(function() {
+            // Function to show the correct section based on the sidebar link clicked
+            $('.list-group-item').click(function() {
+                var section = $(this).data('section');
+                $('.content-section').addClass('hidden');
+                $('#' + section).removeClass('hidden');
+            });
+        
+            // Save note via AJAX
+            $('#save-note').click(function() {
+                var content = $('#note-content').val();
+                var courseId = {{ course.id }};
+                $.ajax({
+                    url: '/courses/' + courseId + '/add_note/',
+                    method: 'POST',
+                    data: {
+                        content: content,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $('#note-content').val('');
+                            loadNotes();
+                        } else {
+                            alert('Error saving note.');
+                        }
+                    }
+                });
+            });
+        
+            // Load notes via AJAX
+            function loadNotes() {
+                var courseId = {{ course.id }};
+                $.ajax({
+                    url: '/courses/' + courseId + '/get_notes/',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            var notesList = $('#notes-list');
+                            notesList.empty();
+                            response.notes.forEach(function(note) {
+                                notesList.append('<div class="note"><p>' + note.content + '</p><small>' + note.created_at + '</small></div>');
+                            });
+                        } else {
+                            alert('Error loading notes.');
+                        }
+                    }
+                });
             }
+        
+            // Load notes on page load
+            loadNotes();
         });
-    });
-
-    // Load notes via AJAX
-    function loadNotes() {
-        var courseId = {{ course.id }};
-        $.ajax({
-            url: '/courses/' + courseId + '/get_notes/',
-            method: 'GET',
-            success: function(response) {
-                if (response.status === 'success') {
-                    var notesList = $('#notes-list');
-                    notesList.empty();
-                    response.notes.forEach(function(note) {
-                        notesList.append('<div class="note"><p>' + note.content + '</p><small>' + note.created_at + '</small></div>');
-                    });
-                } else {
-                    alert('Error loading notes.');
-                }
-            }
-        });
-    }
-
-    // Load notes on page load
-    loadNotes();
-});
-</script>
+        
+        function showTopics(weekId) {
+            document.querySelectorAll('.topics-list').forEach(function(list) {
+                list.style.display = 'none';
+            });
+            document.getElementById('topics-' + weekId).style.display = 'block';
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(function(content) {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+        </script>
+        
 </body>
 </html>
