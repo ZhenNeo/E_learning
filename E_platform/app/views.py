@@ -593,8 +593,6 @@ def dislike_comment(request, comment_id):
     return JsonResponse({'dislikes': comment.dislikes})
 
 
-
-
 @login_required
 def view_cart(request):
     cart_courses = request.user.student.cart.all()
